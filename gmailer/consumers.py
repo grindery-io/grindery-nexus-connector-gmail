@@ -40,7 +40,7 @@ class SocketAdapter(AsyncJsonWebsocketConsumer):
         token_uri = credentials['token_uri']
         client_id = os.environ['client_id']
         client_secret = os.environ['client_secret']
-        scopes = credentials['scope']
+        scopes = ["https://www.googleapis.com/auth/gmail.send"]
         expiry = credentials['expires_in']
 
         to = fields['to']
