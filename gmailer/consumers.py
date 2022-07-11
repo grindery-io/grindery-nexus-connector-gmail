@@ -1,4 +1,5 @@
 import json
+import os
 import asyncio
 import requests
 import base64
@@ -34,13 +35,13 @@ class SocketAdapter(AsyncJsonWebsocketConsumer):
         credentials = params['credentials']
         fields = params['fields']
 
-        token = credentials['token']
+        token = credentials['access_token']
         refresh_token = credentials['refresh_token']
         token_uri = credentials['token_uri']
-        client_id = credentials['client_id']
-        client_secret = credentials['client_secret']
-        scopes = credentials['scopes']
-        expiry = credentials['expiry']
+        client_id = os.environ['client_id']
+        client_secret = os.environ['client_secret']
+        scopes = credentials['scope']
+        expiry = credentials['expires_in']
 
         to = fields['to']
         cc = fields['cc']
