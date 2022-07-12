@@ -43,8 +43,8 @@ class SocketAdapter(AsyncJsonWebsocketConsumer):
             token = credentials['access_token']
         if 'refresh_token' in credentials:
             refresh_token = credentials['refresh_token']
-        if 'expires_in' in credentials:
-            expiry = credentials['expires_in']
+        # if 'expires_in' in credentials:
+        #     expiry = credentials['expires_in']
         token_uri = os.environ['token_uri']
         client_id = os.environ['client_id']
         client_secret = os.environ['client_secret']
@@ -72,8 +72,7 @@ class SocketAdapter(AsyncJsonWebsocketConsumer):
             'token_uri': token_uri,
             'client_id': client_id,
             'client_secret': client_secret,
-            'scopes': scopes,
-            'expiry': expiry
+            'scopes': scopes
         }
 
         creds = Credentials.from_authorized_user_info(data, scopes)
