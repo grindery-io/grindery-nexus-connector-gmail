@@ -35,19 +35,36 @@ class SocketAdapter(AsyncJsonWebsocketConsumer):
         credentials = params['credentials']
         fields = params['fields']
 
-        token = credentials['access_token']
-        refresh_token = credentials['refresh_token']
+        token = ''
+        refresh_token = ''
+        expiry = ''
+
+        if 'access_token' in credentials:
+            token = credentials['access_token']
+        if 'refresh_token' in credentials:
+            refresh_token = credentials['refresh_token']
+        if 'expires_in' in credentials:
+            expiry = credentials['expires_in']
         token_uri = os.environ['token_uri']
         client_id = os.environ['client_id']
         client_secret = os.environ['client_secret']
         scopes = ["https://www.googleapis.com/auth/gmail.send"]
-        expiry = credentials['expires_in']
 
-        to = fields['to']
-        cc = fields['cc']
-        bcc = fields['bcc']
-        subject = fields['subject']
-        content = fields['message']
+        to = ''
+        cc = ''
+        bcc = ''
+        subject = ''
+        content = ''
+        if 'to' in fields:
+            to = fields['to']
+        if 'cc' in fields:
+            cc = fields['cc']
+        if 'bcc' in fields:
+            bcc = fields['bcc']
+        if 'subject' in fields:
+            subject = fields['subject']
+        if 'message' in fields:
+            content = fields['message']
 
         data = {
             'token': token,
