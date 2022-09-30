@@ -40,6 +40,14 @@ class SocketAdapter(AsyncJsonWebsocketConsumer):
     async def receive(self, text_data=None, bytes_data=None, **kwargs):
         request = json.loads(text_data)
         method = request.get("method", None)
+        if method == 'ping':
+            response = {
+                'jsonrpc': '2.0',
+                'result': {},
+                'id': id
+            }
+            await self.send_json(response)
+            return
         params = request.get("params", None)
         id = request.get("id", None)
         key = params['key']
