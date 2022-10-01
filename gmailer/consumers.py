@@ -20,6 +20,7 @@ class HttpRequestWrapper(HttpRequest):
         if "uri" in kwargs:
             kwargs["uri"] = REQUEST_PREFIX + re.sub(r"^https://", "", kwargs["uri"])
         elif len(args) >= 3:
+            args = list(args)
             args[2] = REQUEST_PREFIX + re.sub(r"^https://", "", args[2])
         super().__init__(*args, **kwargs)
 
