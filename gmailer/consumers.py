@@ -3,13 +3,26 @@ import os
 import asyncio
 import requests
 import base64
+import re
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from googleapiclient.http import HttpRequest
 from googleapiclient.errors import HttpError
 from email.message import EmailMessage
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
+os.environ["CDS_NAME"] = "gmailSender"
+REQUEST_PREFIX = os.path.expandvars(os.environ["CREDENTIAL_MANAGER_REQUEST_PREFIX"])
+
+class HttpRequestWrapper(HttpRequest):
+    def __init__(self, *args, **kwargs):
+        if "uri" in kwargs:
+            kwargs["uri"] = REQUEST_PREFIX + re.sub(r"^https://", "", kwargs["uri"])
+        elif len(args) >= 3:
+            args = list(args)
+            args[2] = REQUEST_PREFIX + re.sub(r"^https://", "", args[2])
+        super().__init__(*args, **kwargs)
 
 class SocketAdapter(AsyncJsonWebsocketConsumer):
     def __init__(self, *args, **kwargs):
@@ -30,25 +43,20 @@ class SocketAdapter(AsyncJsonWebsocketConsumer):
         method = request.get("method", None)
         params = request.get("params", None)
         id = request.get("id", None)
+        if method == 'ping':
+            response = {
+                'jsonrpc': '2.0',
+                'result': {},
+                'id': id
+            }
+            await self.send_json(response)
+            return
         key = params['key']
         session_id = params['sessionId']
-        credentials = params['credentials']
         fields = params['fields']
 
-        token = ''
-        refresh_token = ''
-        expiry = ''
+        token = params['authentication']
 
-        if 'access_token' in credentials:
-            token = credentials['access_token']
-        if 'refresh_token' in credentials:
-            refresh_token = credentials['refresh_token']
-        # if 'expires_in' in credentials:
-        #     expiry = credentials['expires_in']
-        token_uri = os.environ['token_uri']
-        client_id = os.environ['client_id']
-        client_secret = os.environ['client_secret']
-        scopes = ["https://www.googleapis.com/auth/gmail.send"]
 
         to = ''
         cc = ''
@@ -66,19 +74,10 @@ class SocketAdapter(AsyncJsonWebsocketConsumer):
         if 'message' in fields:
             content = fields['message']
 
-        data = {
-            'token': token,
-            'refresh_token': refresh_token,
-            'token_uri': token_uri,
-            'client_id': client_id,
-            'client_secret': client_secret,
-            'scopes': scopes
-        }
-
-        creds = Credentials.from_authorized_user_info(data, scopes)
+        creds = Credentials(token)
 
         try:
-            service = build('gmail', 'v1', credentials=creds)
+            service = build('gmail', 'v1', credentials=creds,  requestBuilder=HttpRequestWrapper)
             message = EmailMessage()
 
             message.set_content(content)
